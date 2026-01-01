@@ -99,15 +99,22 @@ NFQWS_UDP_PKT_IN=0
 # use <HOSTLIST> and <HOSTLIST_NOAUTO> placeholders to engage standard hostlists and autohostlist in ipset dir
 # hostlist markers are replaced to empty string if MODE_FILTER does not satisfy
 # <HOSTLIST_NOAUTO> appends ipset/zapret-hosts-auto.txt as normal list
+# ИНТЕГРИРОВАННЫЕ СТРАТЕГИИ (Замени этот блок в своем файле)
 NFQWS_OPT="
---filter-udp=19294-19344,50000-50100 --filter-l7=discord,stun --dpi-desync=fake --dpi-desync-fake-discord=/opt/zapret/files/fake/quic_initial_www_google_com.bin --dpi-desync-fake-stun=/opt/zapret/files/fake/quic_initial_www_google_com.bin --dpi-desync-repeats=6 --new
---filter-udp=443 --hostlist="/opt/zapret/hostlists/list-general.txt" --hostlist-exclude="/opt/zapret/hostlists/list-exclude.txt" --ipset-exclude="/opt/zapret/hostlists/ipset-exclude.txt" --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fake-quic="/opt/zapret/files/fake/quic_initial_www_google_com.bin" --new
---filter-tcp=2053,2083,2087,2096,8443 --hostlist-domains=discord.media --dpi-desync=fake,hostfakesplit --dpi-desync-fake-tls-mod=rnd,dupsid,sni=ya.ru --dpi-desync-hostfakesplit-mod=host=ya.ru,altorder=1 --dpi-desync-fooling=ts --new
---filter-tcp=443 --hostlist=/opt/zapret/hostlists/list-google.txt --ip-id=zero --dpi-desync=fake,hostfakesplit --dpi-desync-fake-tls-mod=rnd,dupsid,sni=www.google.com --dpi-desync-hostfakesplit-mod=host=www.google.com,altorder=1 --dpi-desync-fooling=ts --new
---filter-tcp=80,443 --hostlist=/opt/zapret/hostlists/list-general.txt --hostlist-exclude=/opt/zapret/hostlists/list-exclude.txt --ipset-exclude=/opt/zapret/hostlists/ipset-exclude.txt --dpi-desync=fake,hostfakesplit --dpi-desync-fake-tls-mod=rnd,dupsid,sni=ya.ru --dpi-desync-hostfakesplit-mod=host=ya.ru,altorder=1 --dpi-desync-fooling=ts --new
---filter-udp=443 --ipset="/opt/zapret/hostlists/ipset-all.txt" --hostlist-exclude="/opt/zapret/hostlists/list-exclude.txt" --ipset-exclude="/opt/zapret/hostlists/ipset-exclude.txt" --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fake-quic="/opt/zapret/files/fake/quic_initial_www_google_com.bin" --new
---filter-tcp=80,443,$GAME_FILTER --ipset=/opt/zapret/hostlists/ipset-all.txt --hostlist-exclude=/opt/zapret/hostlists/list-exclude.txt --ipset-exclude=/opt/zapret/hostlists/ipset-exclude.txt --dpi-desync=fake,hostfakesplit --dpi-desync-fake-tls-mod=rnd,dupsid,sni=ya.ru --dpi-desync-hostfakesplit-mod=host=ya.ru,altorder=1 --dpi-desync-fooling=ts --new
---filter-udp=$GAME_FILTER --ipset="/opt/zapret/hostlists/ipset-all.txt" --ipset-exclude="/opt/zapret/hostlists/ipset-exclude.txt" --dpi-desync=fake --dpi-desync-autottl=2 --dpi-desync-repeats=10 --dpi-desync-any-protocol=1 --dpi-desync-fake-unknown-udp="/opt/zapret/files/fake/quic_initial_www_google_com.bin" --dpi-desync-cutoff=n2
+# 1. Google
+--filter-tcp=443 --hostlist=/etc/zapret/hostlists/list-google.txt --dpi-desync=fake,multisplit --dpi-desync-split-pos=2,sld --dpi-desync-fake-tls=0x0F0F0F0F --dpi-desync-fake-tls=/etc/zapret/files/fake/tls_clienthello_www_google_com.bin --dpi-desync-fake-tls-mod=rnd,dupsid,sni=google.com --dpi-desync-split-seqovl=2108 --dpi-desync-split-seqovl-pattern=/etc/zapret/files/fake/tls_clienthello_www_google_com.bin --dpi-desync-fooling=badseq --new
+# 2. Roblox
+--filter-tcp=443 --hostlist=/etc/zapret/hostlists/list-roblox.txt --dpi-desync=fake,hostfakesplit --dpi-desync-fake-tls-mod=rnd,dupsid,sni=www.google.com --dpi-desync-fooling=ts --new
+# 3. Discord
+--filter-udp=19294-19344,50000-50100 --filter-l7=discord,stun --dpi-desync=fake --dpi-desync-fake-discord=/etc/zapret/files/fake/quic_initial_www_google_com.bin --dpi-desync-fake-stun=/etc/zapret/files/fake/quic_initial_www_google_com.bin --dpi-desync-repeats=6 --new
+# 4. Общее правило для UDP 443 (QUIC)
+--filter-udp=443 --hostlist-exclude=/etc/zapret/hostlists/list-exclude.txt --dpi-desync=fake --dpi-desync-repeats=4 --dpi-desync-fake-quic=/etc/zapret/files/fake/quic_initial_www_google_com.bin --new
+# 5. Общий TCP 443 (Multisplit + 4pda.bin)
+--filter-tcp=443 --hostlist-exclude=/etc/zapret/hostlists/list-exclude.txt --dpi-desync-any-protocol=1 --dpi-desync-cutoff=n5 --dpi-desync=multisplit --dpi-desync-split-seqovl=582 --dpi-desync-split-pos=1 --dpi-desync-split-seqovl-pattern=/etc/zapret/files/fake/4pda.bin --new
+# 6. Общие правила для TCP 80,443 и игр
+--filter-tcp=80,443,$GAME_FILTER --ipset=/etc/zapret/hostlists/ipset-all.txt --hostlist-exclude=/etc/zapret/hostlists/list-exclude.txt --ipset-exclude=/etc/zapret/hostlists/ipset-exclude.txt --dpi-desync=fake,hostfakesplit --dpi-desync-fake-tls-mod=rnd,dupsid,sni=ya.ru --dpi-desync-hostfakesplit-mod=host=ya.ru,altorder=1 --dpi-desync-fooling=ts --new
+# 7. Фильтр для прочего UDP
+--filter-udp=1024-49999,50100-65535 --dpi-desync=fake --dpi-desync-cutoff=d2 --dpi-desync-any-protocol=1 --dpi-desync-fake-unknown-udp=/etc/zapret/files/fake/quic_initial_www_google_com.bin
 "
 
 
